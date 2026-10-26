@@ -3,382 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinReconcile - Dashboard & Rekonsiliasi Keuangan</title>
+    <title>Dashboard Rekonsiliasi & Monitoring Keuangan</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Font Family -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        },
-                        emeraldCustom: '#10b981',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b',
+                        accentGreen: '#10b981',
+                        accentBlue: '#3b82f6',
+                        accentRed: '#ef4444',
                     }
                 }
             }
         }
     </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(100, 116, 139, 0.3);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(100, 116, 139, 0.5);
-        }
-    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row antialiased selection:bg-sky-500 selection:text-white">
+<body class="bg-darkBg text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Sidebar Navigation -->
-    <aside class="w-full md:w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0">
-        <div>
-            <!-- Brand Header -->
-            <div class="p-6 flex items-center justify-between border-b border-slate-800/80">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-gradient-to-tr from-sky-600 to-emerald-500 rounded-xl text-white shadow-lg shadow-sky-900/40">
-                        <i data-lucide="wallet-cards" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-tight tracking-wide bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">FinReconcile</h1>
-                        <span class="text-[10px] uppercase font-semibold tracking-wider text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Pro Suite</span>
-                    </div>
+    <!-- Navbar -->
+    <header class="bg-cardBg border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-emerald-400">
+                    <i class="fa-solid fa-wallet text-xl"></i>
                 </div>
+                <h1 class="text-lg font-bold tracking-tight">FinReconcile <span class="text-emerald-400">Dashboard</span></h1>
             </div>
-
-            <!-- Nav Links -->
-            <nav class="p-4 space-y-1.5">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 bg-sky-600/10 text-sky-400 border border-sky-500/20 shadow-sm">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    <span>Dashboard & Overview</span>
+            <div class="flex items-center space-x-3">
+                <button onclick="resetDataDefault()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Reset Data
                 </button>
-
-                <button onclick="switchTab('reconciliation')" id="nav-reconciliation" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
-                    <i data-lucide="git-compare" class="w-4 h-4"></i>
-                    <span class="flex-1 text-left">Rekonsiliasi Mutasi</span>
-                    <span id="unmatched-badge" class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[11px] px-2 py-0.5 rounded-full font-bold">2 Unmatched</span>
-                </button>
-
-                <button onclick="switchTab('portfolio')" id="nav-portfolio" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
-                    <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                    <span>Aset & Portofolio</span>
-                </button>
-
-                <button onclick="switchTab('goals')" id="nav-goals" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
-                    <i data-lucide="target" class="w-4 h-4"></i>
-                    <span>Budget & Target</span>
-                </button>
-            </nav>
-        </div>
-
-        <!-- User Profile Quick View -->
-        <div class="p-4 border-t border-slate-800/80 bg-slate-950/50">
-            <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-sm shadow">
-                    AH
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-xs font-semibold text-slate-200 truncate">Ahmad Hidayat</p>
-                    <p class="text-[11px] text-slate-400 truncate">Verified Investor</p>
+                <div class="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-slate-900 text-sm">
+                    AP
                 </div>
             </div>
         </div>
-    </aside>
+    </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto space-y-6">
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Header Bar -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-            <div>
-                <h2 id="page-title" class="text-2xl font-bold text-white tracking-tight">Financial Overview</h2>
-                <p id="page-subtitle" class="text-sm text-slate-400">Ringkasan status kekayaan bersih dan arus kas terkini</p>
+        <!-- Top Metrics Overview -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 shadow-sm">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Net Worth</p>
+                <h3 id="metricNetWorth" class="text-2xl font-bold text-white mt-1">Rp 0</h3>
+                <span class="text-xs text-emerald-400 mt-2 inline-flex items-center"><i class="fa-solid fa-arrow-up mr-1"></i> Real-time update</span>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openModal('modal-add-transaction')" class="flex items-center gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg shadow-sky-900/30 transition-all active:scale-95">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    <span>Tambah Transaksi</span>
-                </button>
-                <button onclick="openModal('modal-import')" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-all active:scale-95">
-                    <i data-lucide="upload" class="w-4 h-4"></i>
-                    <span>Import Mutasi</span>
-                </button>
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 shadow-sm">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Aset</p>
+                <h3 id="metricTotalAsset" class="text-2xl font-bold text-emerald-400 mt-1">Rp 0</h3>
+                <span class="text-xs text-slate-400 mt-2 block">Investasi & Kas Aktif</span>
             </div>
-        </header>
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 shadow-sm">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Liabilitas (Utang)</p>
+                <h3 id="metricLiabilitas" class="text-2xl font-bold text-rose-400 mt-1">Rp 0</h3>
+                <span class="text-xs text-slate-400 mt-2 block">Cicilan & Tagihan</span>
+            </div>
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 shadow-sm">
+                <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Cash Flow Bersih (Bulan Ini)</p>
+                <h3 id="metricCashFlow" class="text-2xl font-bold text-blue-400 mt-1">Rp 0</h3>
+                <span class="text-xs text-slate-400 mt-2 block">Pemasukan - Pengeluaran</span>
+            </div>
+        </div>
 
-        <!-- ================= TAB 1: DASHBOARD OVERVIEW ================= -->
-        <div id="tab-dashboard" class="tab-content space-y-6">
-            <!-- 4 Metric Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Card 1: Net Worth -->
-                <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 backdrop-blur-sm relative overflow-hidden group hover:border-sky-500/50 transition-all">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Net Worth</span>
-                        <div class="p-2 bg-sky-500/10 text-sky-400 rounded-lg"><i data-lucide="coins" class="w-5 h-5"></i></div>
-                    </div>
-                    <div class="mt-3">
-                        <h3 id="stat-networth" class="text-2xl font-extrabold text-white">Rp 842.500.000</h3>
-                        <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-medium">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                            <span>+4.2% dari bulan lalu</span>
-                        </p>
-                    </div>
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 lg:col-span-2 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Tren Cash Flow (6 Bulan)</h2>
+                    <span class="text-xs text-slate-400">Pemasukan vs Pengeluaran</span>
                 </div>
-
-                <!-- Card 2: Total Assets -->
-                <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 backdrop-blur-sm relative overflow-hidden group hover:border-emerald-500/50 transition-all">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Aset</span>
-                        <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i data-lucide="landmark" class="w-5 h-5"></i></div>
-                    </div>
-                    <div class="mt-3">
-                        <h3 id="stat-assets" class="text-2xl font-extrabold text-white">Rp 895.000.000</h3>
-                        <p class="text-xs text-slate-400 mt-1">Tersebar di 5 kategori</p>
-                    </div>
-                </div>
-
-                <!-- Card 3: Total Liabilities -->
-                <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 backdrop-blur-sm relative overflow-hidden group hover:border-rose-500/50 transition-all">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Liabilitas</span>
-                        <div class="p-2 bg-rose-500/10 text-rose-400 rounded-lg"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
-                    </div>
-                    <div class="mt-3">
-                        <h3 id="stat-liabilities" class="text-2xl font-extrabold text-white">Rp 52.500.000</h3>
-                        <p class="text-xs text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                            <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
-                            <span>Cicilan & Kartu Kredit</span>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Card 4: Monthly Cash Flow -->
-                <div class="bg-slate-800/50 border border-slate-700/60 rounded-xl p-5 backdrop-blur-sm relative overflow-hidden group hover:border-indigo-500/50 transition-all">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cash Flow Bulanan</span>
-                        <div class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg"><i data-lucide="scale" class="w-5 h-5"></i></div>
-                    </div>
-                    <div class="mt-3">
-                        <h3 id="stat-cashflow" class="text-2xl font-extrabold text-emerald-400">+Rp 14.250.000</h3>
-                        <p class="text-xs text-slate-400 mt-1">Surplus Oktober 2026</p>
-                    </div>
+                <div class="relative flex-1 min-h-[250px]">
+                    <canvas id="cashFlowChart"></canvas>
                 </div>
             </div>
-
-            <!-- Visual Charts Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Bar/Line Chart: Cash Flow Trend -->
-                <div class="lg:col-span-2 bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-base font-bold text-white">Tren Pemasukan vs Pengeluaran</h3>
-                            <p class="text-xs text-slate-400">Perbandingan per bulan tahun berjalan</p>
-                        </div>
-                        <span class="text-xs bg-slate-700/60 text-slate-300 px-2.5 py-1 rounded border border-slate-600">6 Bulan Terakhir</span>
-                    </div>
-                    <div class="h-64 relative">
-                        <canvas id="chart-cashflow-trend"></canvas>
-                    </div>
+            <div class="bg-cardBg p-5 rounded-xl border border-slate-800 flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Alokasi Portofolio Aset</h2>
                 </div>
-
-                <!-- Donut Chart: Asset Allocation -->
-                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-white">Alokasi Portofolio</h3>
-                            <button onclick="switchTab('portfolio')" class="text-xs text-sky-400 hover:underline">Rincian &rarr;</button>
-                        </div>
-                        <div class="h-56 relative flex items-center justify-center">
-                            <canvas id="chart-asset-allocation"></canvas>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-slate-700/50 text-xs">
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-sky-500"></span><span class="text-slate-300">Saham (39.1%)</span></div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span class="text-slate-300">Kas & Bank (24.6%)</span></div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500"></span><span class="text-slate-300">Emas (16.8%)</span></div>
-                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-500"></span><span class="text-slate-300">Reksadana (13.4%)</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Transactions Preview with Quick Reconciliation Notice -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-base font-bold text-white">Ringkasan Status Rekonsiliasi</h3>
-                        <span class="px-2 py-0.5 text-xs font-semibold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Perlu Perhatian</span>
-                    </div>
-                    <button onclick="switchTab('reconciliation')" class="text-xs bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 border border-sky-500/30 px-3 py-1.5 rounded-lg font-medium transition-all">
-                        Buka Modul Rekonsiliasi &rarr;
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-800">
-                        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-                            <span>Total Transaksi</span>
-                            <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i>
-                        </div>
-                        <p class="text-xl font-bold text-white">48 Mutasi</p>
-                        <p class="text-xs text-slate-500 mt-1">Periode Oktober 2026</p>
-                    </div>
-                    <div class="bg-emerald-950/20 p-4 rounded-lg border border-emerald-500/20">
-                        <div class="flex items-center justify-between text-xs text-emerald-400 mb-1">
-                            <span>Ter-Rekonsiliasi (Matched)</span>
-                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-                        </div>
-                        <p class="text-xl font-bold text-emerald-400">46 Mutasi (95.8%)</p>
-                        <p class="text-xs text-emerald-600/80 mt-1">Saldo Catatan = Saldo Bank</p>
-                    </div>
-                    <div class="bg-amber-950/20 p-4 rounded-lg border border-amber-500/20">
-                        <div class="flex items-center justify-between text-xs text-amber-400 mb-1">
-                            <span>Belum Cocok / Selisih</span>
-                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-                        </div>
-                        <p class="text-xl font-bold text-amber-400">2 Transaksi</p>
-                        <p class="text-xs text-amber-500/80 mt-1">Selisih Total: Rp 250.000</p>
-                    </div>
+                <div class="relative flex-1 min-h-[250px] flex items-center justify-center">
+                    <canvas id="assetDonutChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- ================= TAB 2: FINANCIAL RECONCILIATION MODULE ================= -->
-        <div id="tab-reconciliation" class="tab-content hidden space-y-6">
-            <!-- Recon Header / Actions -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-lg">
-                        <i data-lucide="git-compare" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-white">Matriks Pencocokan Transaksi</h3>
-                        <p class="text-xs text-slate-400">Bandingkan Catatan Internal dengan Mutasi Rekening Bank / Broker</p>
-                    </div>
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-slate-800 space-x-6">
+            <button onclick="switchTab('reconciliation')" id="tabBtn-reconciliation" class="pb-3 text-sm font-medium border-b-2 border-emerald-400 text-emerald-400 transition">
+                <i class="fa-solid fa-scale-balanced mr-2"></i> Rekonsiliasi Bank
+            </button>
+            <button onclick="switchTab('portfolio')" id="tabBtn-portfolio" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-chart-line mr-2"></i> Portofolio Aset
+            </button>
+            <button onclick="switchTab('budget')" id="tabBtn-budget" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-bullseye mr-2"></i> Target & Budget
+            </button>
+        </div>
+
+        <!-- TAB 1: REKONSILIASI -->
+        <div id="tab-reconciliation" class="space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-cardBg p-4 rounded-xl border border-slate-800">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <input type="text" id="searchRecon" oninput="renderReconciliationTable()" placeholder="Cari transaksi..." class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500 w-full sm:w-64">
+                    <select id="filterStatus" onchange="renderReconciliationTable()" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="ALL">Semua Status</option>
+                        <option value="Matched">Matched</option>
+                        <option value="Pending">Pending / Selisih</option>
+                    </select>
                 </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button onclick="reconcileAllMatched()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition-all flex items-center gap-1.5">
-                        <i data-lucide="check-check" class="w-4 h-4"></i>
-                        <span>Reconcile All Matched</span>
-                    </button>
-                    <button onclick="openModal('modal-add-transaction')" class="px-3.5 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Add Missing Entry</span>
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                    <button onclick="openAddTransactionModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center">
+                        <i class="fa-solid fa-plus mr-1.5"></i> Tambah Transaksi
                     </button>
                 </div>
             </div>
 
-            <!-- Filter Controls -->
-            <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button onclick="filterRecon('all')" id="btn-filter-all" class="recon-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 text-white border border-sky-500">Semua (5)</button>
-                    <button onclick="filterRecon('unmatched')" id="btn-filter-unmatched" class="recon-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700">Selisih/Unmatched (2)</button>
-                    <button onclick="filterRecon('matched')" id="btn-filter-matched" class="recon-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700">Matched (3)</button>
-                </div>
-                <div class="relative w-full sm:w-64">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                    <input type="text" id="recon-search" onkeyup="searchReconTable()" placeholder="Cari deskripsi atau nominal..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
-                </div>
-            </div>
-
-            <!-- Reconciliation Comparison Table -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl overflow-hidden shadow-xl">
+            <div class="bg-cardBg rounded-xl border border-slate-800 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/80 uppercase text-[11px] font-semibold text-slate-400 border-b border-slate-700/80">
-                            <tr>
-                                <th class="p-3.5">Tanggal</th>
-                                <th class="p-3.5">Akun / Bank</th>
-                                <th class="p-3.5">Catatan Internal</th>
-                                <th class="p-3.5">Mutasi Bank (Actual)</th>
-                                <th class="p-3.5">Selisih</th>
-                                <th class="p-3.5">Status</th>
-                                <th class="p-3.5 text-center">Aksi Respon</th>
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900/60 text-slate-400 border-b border-slate-800 uppercase tracking-wider">
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Keterangan / Merchant</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3 text-right">Catatan Internal</th>
+                                <th class="p-3 text-right">Mutasi Bank</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="recon-table-body" class="divide-y divide-slate-800">
-                            <!-- Populated dynamically via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= TAB 3: ASSET & PORTFOLIO BREAKDOWN ================= -->
-        <div id="tab-portfolio" class="tab-content hidden space-y-6">
-            <!-- Asset Summary Banner -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-slate-800/40 border border-slate-700/60 p-4 rounded-xl">
-                    <span class="text-xs text-slate-400 uppercase font-semibold">Total Investasi Pasar</span>
-                    <h4 class="text-xl font-bold text-white mt-1">Rp 602.000.000</h4>
-                    <p class="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-medium">
-                        <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Total Unrealized Return: +Rp 64.500.000 (+12.0%)
-                    </p>
-                </div>
-                <div class="bg-slate-800/40 border border-slate-700/60 p-4 rounded-xl">
-                    <span class="text-xs text-slate-400 uppercase font-semibold">Kas & Deposito Liquidity</span>
-                    <h4 class="text-xl font-bold text-white mt-1">Rp 220.000.000</h4>
-                    <p class="text-xs text-slate-400 mt-1">Bunga rata-rata: 4.8% p.a.</p>
-                </div>
-                <div class="bg-slate-800/40 border border-slate-700/60 p-4 rounded-xl flex items-center justify-between">
-                    <div>
-                        <span class="text-xs text-slate-400 uppercase font-semibold">Update Nilai Pasar</span>
-                        <p class="text-xs text-slate-300 mt-1">Terakhir diperbarui: Hari Ini, 10:15</p>
-                    </div>
-                    <button onclick="openModal('modal-update-asset')" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold shadow transition-all">
-                        Update Price
-                    </button>
-                </div>
-            </div>
-
-            <!-- Portfolio Table Grouped -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl overflow-hidden">
-                <div class="p-4 bg-slate-900/60 border-b border-slate-700/80 flex justify-between items-center">
-                    <h3 class="font-bold text-white text-sm">Rincian Pos Aset & Instumen Investasi</h3>
-                    <span class="text-xs text-slate-400">5 Instumen Terdaftar</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900/40 text-[11px] uppercase font-semibold text-slate-400 border-b border-slate-700">
-                            <tr>
-                                <th class="p-3.5">Instrumen / Kode</th>
-                                <th class="p-3.5">Kategori</th>
-                                <th class="p-3.5">Harga Beli Rata-Rata</th>
-                                <th class="p-3.5">Harga Pasar Saat Ini</th>
-                                <th class="p-3.5">Nilai Portofolio</th>
-                                <th class="p-3.5">Unrealized P&L</th>
-                                <th class="p-3.5 text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="portfolio-table-body" class="divide-y divide-slate-800">
+                        <tbody id="reconTableBody" class="divide-y divide-slate-800">
                             <!-- Populated by JS -->
                         </tbody>
                     </table>
@@ -386,522 +149,514 @@
             </div>
         </div>
 
-        <!-- ================= TAB 4: FINANCIAL GOALS & BUDGET TRACKER ================= -->
-        <div id="tab-goals" class="tab-content hidden space-y-6">
-            <!-- Top Row: Goals Progress -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="font-bold text-white text-base">Target Keuangan & Tabungan Impian</h3>
-                        <p class="text-xs text-slate-400">Progres pencapaian akumulasi dana impian Anda</p>
-                    </div>
-                    <button onclick="alert('Fitur tambah target impian siap dikustomisasi!')" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs rounded-lg border border-slate-600 font-medium">
-                        + Target Baru
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="goals-container">
-                    <!-- Dynamic content filled by JS -->
+        <!-- TAB 2: PORTOFOLIO -->
+        <div id="tab-portfolio" class="space-y-4 hidden">
+            <div class="flex justify-between items-center bg-cardBg p-4 rounded-xl border border-slate-800">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">Daftar Instrumen & Aset</h2>
+                <button onclick="openAddAssetModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-2 rounded-lg transition flex items-center">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Tambah Aset
+                </button>
+            </div>
+            <div class="bg-cardBg rounded-xl border border-slate-800 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900/60 text-slate-400 border-b border-slate-800 uppercase tracking-wider">
+                                <th class="p-3">Nama Aset</th>
+                                <th class="p-3">Kategori</th>
+                                <th class="p-3 text-right">Jumlah / Unit</th>
+                                <th class="p-3 text-right">Harga Modal</th>
+                                <th class="p-3 text-right">Harga Pasar</th>
+                                <th class="p-3 text-right">Total Nilai</th>
+                                <th class="p-3 text-right">Unrealized P&L</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Bottom Row: Budget Allocation Tracker -->
-            <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="font-bold text-white text-base">Budget Tracker Bulanan (Oktober 2026)</h3>
-                        <p class="text-xs text-slate-400">Realisasi pengeluaran vs Alokasi anggaran bulanan</p>
+        <!-- TAB 3: BUDGET & GOALS -->
+        <div id="tab-budget" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-cardBg p-5 rounded-xl border border-slate-800">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4">Budget Pengeluaran Bulanan</h2>
+                    <div id="budgetContainer" class="space-y-4">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
-
-                <div class="space-y-4" id="budget-container">
-                    <!-- Dynamic content filled by JS -->
+                <div class="bg-cardBg p-5 rounded-xl border border-slate-800">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4">Financial Goals & Dana Darurat</h2>
+                    <div id="goalsContainer" class="space-y-5">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- ================= MODAL: TAMBAH TRANSAKSI MANUAL ================= -->
-    <div id="modal-add-transaction" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base">Tambah Catatan Transaksi Baru</h3>
-                <button onclick="closeModal('modal-add-transaction')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <form id="form-add-transaction" onsubmit="handleAddTransaction(event)" class="space-y-3 text-xs">
+    <!-- Modal Tambah Transaksi -->
+    <div id="addTransactionModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-base font-bold text-white">Tambah Transaksi Rekonsiliasi</h3>
+            <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-medium mb-1">Tanggal Transaksi</label>
-                    <input type="date" required id="input-tx-date" value="2026-10-26" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                    <label class="block text-slate-400 mb-1">Tanggal</label>
+                    <input type="date" id="inputDate" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-medium mb-1">Sumber Akun / Rekening</label>
-                    <select id="input-tx-account" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
-                        <option value="BCA Digital (Blu)">BCA Digital (Blu)</option>
-                        <option value="Mandiri Utama">Mandiri Utama</option>
-                        <option value="Stockbit Broker">Stockbit Broker</option>
-                        <option value="Bibit Reksadana">Bibit Reksadana</option>
+                    <label class="block text-slate-400 mb-1">Keterangan / Merchant</label>
+                    <input type="text" id="inputDesc" placeholder="Contoh: Belanja Bulanan" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Kategori</label>
+                    <select id="inputCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                        <option value="Kebutuhan Pokok">Kebutuhan Pokok</option>
+                        <option value="Transportasi">Transportasi</option>
+                        <option value="Investasi">Investasi</option>
+                        <option value="Hiburan">Hiburan</option>
+                        <option value="Pemasukan Gaji">Pemasukan Gaji</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-medium mb-1">Deskripsi / Keterangan</label>
-                    <input type="text" required id="input-tx-desc" placeholder="Contoh: Beli Saham BBCA / Bayar Internet" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                    <label class="block text-slate-400 mb-1">Nominal Catatan Internal (Rp)</label>
+                    <input type="number" id="inputAmount" placeholder="150000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
                 </div>
-                <div>
-                    <label class="block text-slate-400 font-medium mb-1">Nominal (Rp)</label>
-                    <input type="number" required id="input-tx-amount" placeholder="500000" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
-                </div>
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('modal-add-transaction')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium shadow">Simpan Transaksi</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ================= MODAL: IMPORT MUTASI BANK ================= -->
-    <div id="modal-import" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base">Import File Mutasi Bank / Broker</h3>
-                <button onclick="closeModal('modal-import')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-sky-500 transition-colors cursor-pointer bg-slate-800/30">
-                <i data-lucide="file-up" class="w-10 h-10 text-sky-400 mx-auto mb-2"></i>
-                <p class="text-xs text-slate-300 font-medium">Klik untuk memilih file CSV / Excel Mutasi</p>
-                <p class="text-[11px] text-slate-500 mt-1">Format didukung: BCA CSV, Mandiri Statement, Stockbit CSV</p>
-            </div>
-            <div class="text-xs text-slate-400 space-y-1 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-                <p class="font-semibold text-slate-300">Simulasi Import Cepat:</p>
-                <p>Fitur ini akan secara otomatis mendeteksi transaksi selisih dan mencocokkan kode unik mutasi Anda.</p>
-            </div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeModal('modal-import')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium">Tutup</button>
-                <button onclick="simulateImport()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium shadow">Jalankan Simulasi Import</button>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeAddTransactionModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-lg transition">Batal</button>
+                <button onclick="saveNewTransaction()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg transition">Simpan</button>
             </div>
         </div>
     </div>
 
-    <!-- ================= MODAL: UPDATE HARGA ASET ================= -->
-    <div id="modal-update-asset" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-white text-base">Update harga Pasar Aset</h3>
-                <button onclick="closeModal('modal-update-asset')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <form onsubmit="handleUpdateAssetPrice(event)" class="space-y-3 text-xs">
+    <!-- Modal Tambah Aset -->
+    <div id="addAssetModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 rounded-xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-base font-bold text-white">Tambah Instrumen Aset Baru</h3>
+            <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-slate-400 font-medium mb-1">Pilih Instrumen Aset</label>
-                    <select id="update-asset-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
-                        <option value="BBCA">BBCA - Bank Central Asia Tbk</option>
-                        <option value="BBRI">BBRI - Bank Rakyat Indonesia Tbk</option>
-                        <option value="GOLD">Emas Digital (Pegadaian/Treasury)</option>
-                        <option value="BTC">Bitcoin (BTC)</option>
+                    <label class="block text-slate-400 mb-1">Nama Aset</label>
+                    <input type="text" id="assetName" placeholder="Contoh: BBRI / Emas Antam" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                </div>
+                <div>
+                    <label class="block text-slate-400 mb-1">Kategori</label>
+                    <select id="assetCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
+                        <option value="Saham">Saham</option>
+                        <option value="Emas">Emas</option>
+                        <option value="Kas & Bank">Kas & Bank</option>
+                        <option value="Reksadana">Reksadana</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-slate-400 font-medium mb-1">Harga Pasar Baru / Unit (Rp)</label>
-                    <input type="number" id="update-asset-price" required placeholder="Contoh: 10250" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:border-sky-500">
+                    <label class="block text-slate-400 mb-1">Jumlah Unit / Lembar</label>
+                    <input type="number" id="assetQty" placeholder="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
                 </div>
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('modal-update-asset')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg font-medium">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-medium shadow">Perbarui Nilai Pasar</button>
+                <div>
+                    <label class="block text-slate-400 mb-1">Harga Modal Pembelian (Rp)</label>
+                    <input type="number" id="assetBuyPrice" placeholder="5000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-slate-200">
                 </div>
-            </form>
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="closeAddAssetModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-4 py-2 rounded-lg transition">Batal</button>
+                <button onclick="saveNewAsset()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg transition">Simpan</button>
+            </div>
         </div>
     </div>
 
-    <!-- Toast Notification Element -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 border border-sky-500/40 text-slate-100 px-4 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3">
-        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0"></i>
-        <span id="toast-message" class="text-xs font-medium">Notifikasi berhasil!</span>
-    </div>
-
-    <!-- JavaScript Logic -->
+    <!-- Script Aplikasi -->
     <script>
-        // Global State (In-Memory Data)
-        let state = {
-            reconciliations: [
-                { id: 1, date: '2026-10-24', account: 'BCA Digital', internalDesc: 'Transfer Deposit Sekuritas Stockbit', internalVal: 10000000, bankDesc: 'TRSF STOCKBIT SEKURITAS', bankVal: 10000000, diff: 0, status: 'matched' },
-                { id: 2, date: '2026-10-22', account: 'Mandiri Utama', internalDesc: 'Pembayaran Tagihan Listrik & WiFi', internalVal: 1250000, bankDesc: 'PLN/INDIHOME DIRECT DEBIT', bankVal: 1500000, diff: -250000, status: 'unmatched' },
-                { id: 3, date: '2026-10-20', account: 'BCA Digital', internalDesc: 'Beli Emas Digital 5 Gram', internalVal: 6200000, bankDesc: 'TREASURY/EMAS PURCHASE', bankVal: 6200000, diff: 0, status: 'matched' },
-                { id: 4, date: '2026-10-18', account: 'Stockbit Broker', internalDesc: 'Dividen Kas Saham BBCA', internalVal: 4500000, bankDesc: '-', bankVal: 0, diff: 4500000, status: 'unmatched' },
-                { id: 5, date: '2026-10-15', account: 'Mandiri Utama', internalDesc: 'Gaji Bulanan PT Tech Indonesia', internalVal: 25000000, bankDesc: 'SALARY TRANSFER OCT', bankVal: 25000000, diff: 0, status: 'matched' }
-            ],
-            portfolio: [
-                { id: 'BBCA', name: 'Bank Central Asia (BBCA)', category: 'Saham Bluechip', qty: 25000, avgPrice: 8800, currentPrice: 10200 },
-                { id: 'BBRI', name: 'Bank Rakyat Indonesia (BBRI)', category: 'Saham Bluechip', qty: 20000, avgPrice: 4900, currentPrice: 4750 },
-                { id: 'GOLD', name: 'Emas Batangan Digital', category: 'Logam Mulia', qty: 100, avgPrice: 1200000, currentPrice: 1500000 },
-                { id: 'RDPT', name: 'Reksadana Pendapatan Tetap', category: 'Reksadana', qty: 80000, avgPrice: 1250, currentPrice: 1500 },
-                { id: 'BTC', name: 'Bitcoin (BTC)', category: 'Kripto', qty: 0.05, avgPrice: 850000000, currentPrice: 1050000000 }
-            ],
-            goals: [
-                { title: 'Dana Darurat (6 Bulan)', current: 120000000, target: 150000000, icon: 'shield-check', color: 'emerald' },
-                { title: 'DP Rumah Impian', current: 180000000, target: 300000000, icon: 'home', color: 'sky' },
-                { title: 'Wisata Religi / Liburan', current: 35000000, target: 50000000, icon: 'plane', color: 'amber' }
-            ],
-            budgets: [
-                { category: 'Kebutuhan Pokok & Tagihan', spent: 8500000, limit: 10000000 },
-                { category: 'Investasi Bulanan (Auto-Debit)', spent: 10000000, limit: 10000000 },
-                { category: 'Hiburan & Gaya Hidup', spent: 3200000, limit: 3000000 },
-                { category: 'Kesehatan & Asuransi', spent: 1500000, limit: 2000000 }
-            ]
-        };
+        // Data Default
+        const defaultTransactions = [
+            { id: 1, date: '2026-06-01', desc: 'Gaji Bulanan PT Mandiri Sekuritas', category: 'Pemasukan Gaji', internal: 12500000, bank: 12500000, status: 'Matched' },
+            { id: 2, date: '2026-06-03', desc: 'Belanja Bulanan Supermarket', category: 'Kebutuhan Pokok', internal: 850000, bank: 850000, status: 'Matched' },
+            { id: 3, date: '2026-06-05', desc: 'Isi Saldo E-Wallet Transport', category: 'Transportasi', internal: 200000, bank: 250000, status: 'Pending' },
+            { id: 4, date: '2026-06-10', desc: 'Beli Saham BBCA', category: 'Investasi', internal: 3000000, bank: 3000000, status: 'Matched' }
+        ];
 
-        // Format Currency Helper (IDR)
+        const defaultPortfolio = [
+            { id: 1, name: 'BBCA (Saham)', category: 'Saham', qty: 2000, buyPrice: 9500, currentPrice: 10200 },
+            { id: 2, name: 'BBRI (Saham)', category: 'Saham', qty: 3500, buyPrice: 4800, currentPrice: 5100 },
+            { id: 3, name: 'Emas Fisik Antam', category: 'Emas', qty: 10, buyPrice: 1200000, currentPrice: 1350000 },
+            { id: 4, name: 'Blu by BCA Digital', category: 'Kas & Bank', qty: 1, buyPrice: 15400000, currentPrice: 15400000 }
+        ];
+
+        const defaultBudget = [
+            { category: 'Kebutuhan Pokok', spent: 850000, limit: 2000000 },
+            { category: 'Transportasi', spent: 450000, limit: 800000 },
+            { category: 'Hiburan & Cafe', spent: 600000, limit: 1000000 },
+            { category: 'Investasi Rutin', spent: 3000000, limit: 3000000 }
+        ];
+
+        const defaultGoals = [
+            { name: 'Dana Darurat (6 Bulan)', current: 18000000, target: 30000000 },
+            { name: 'Impian Kendaraan / DP Motor', current: 12000000, target: 20000000 }
+        ];
+
+        // State Aplikasi (tersimpan di LocalStorage jika ada)
+        let transactions = JSON.parse(localStorage.getItem('fin_transactions')) || defaultTransactions;
+        let portfolio = JSON.parse(localStorage.getItem('fin_portfolio')) || defaultPortfolio;
+        let budgets = JSON.parse(localStorage.getItem('fin_budgets')) || defaultBudget;
+        let goals = JSON.parse(localStorage.getItem('fin_goals')) || defaultGoals;
+
+        let cashFlowChartInstance = null;
+        let assetDonutChartInstance = null;
+
+        // Inisialisasi saat web dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+
+        function saveData() {
+            localStorage.setItem('fin_transactions', JSON.stringify(transactions));
+            localStorage.setItem('fin_portfolio', JSON.stringify(portfolio));
+            localStorage.setItem('fin_budgets', JSON.stringify(budgets));
+            localStorage.setItem('fin_goals', JSON.stringify(goals));
+        }
+
+        function resetDataDefault() {
+            if (confirm("Reset seluruh data ke pengaturan awal?")) {
+                transactions = [...defaultTransactions];
+                portfolio = [...defaultPortfolio];
+                budgets = [...defaultBudget];
+                goals = [...defaultGoals];
+                saveData();
+                renderAll();
+            }
+        }
+
+        function renderAll() {
+            renderMetrics();
+            renderCharts();
+            renderReconciliationTable();
+            renderPortfolioTable();
+            renderBudgetAndGoals();
+        }
+
+        // Format Rupiah
         function formatIDR(val) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
         }
 
-        // Initialize Lucide Icons & Charts
-        document.addEventListener("DOMContentLoaded", () => {
-            lucide.createIcons();
-            initCharts();
-            renderReconciliationTable('all');
-            renderPortfolioTable();
-            renderGoalsAndBudgets();
-        });
+        // Hitung & Render Metrics
+        function renderMetrics() {
+            let totalAssetVal = portfolio.reduce((acc, item) => acc + (item.qty * item.currentPrice), 0);
+            let totalLiabilitas = 2500000; // Contoh nilai liabilitas tetap / cicilan
 
-        // Tab Switching Logic
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-sky-600/10', 'text-sky-400', 'border', 'border-sky-500/20', 'shadow-sm');
-                btn.classList.add('text-slate-400');
-            });
+            let totalIncome = transactions
+                .filter(t => t.category === 'Pemasukan Gaji')
+                .reduce((acc, t) => acc + t.internal, 0);
 
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            activeNav.classList.add('bg-sky-600/10', 'text-sky-400', 'border', 'border-sky-500/20', 'shadow-sm');
-            activeNav.classList.remove('text-slate-400');
+            let totalExpense = transactions
+                .filter(t => t.category !== 'Pemasukan Gaji')
+                .reduce((acc, t) => acc + t.internal, 0);
 
-            // Update titles dynamically
-            const titles = {
-                'dashboard': ['Financial Overview', 'Ringkasan status kekayaan bersih dan arus kas terkini'],
-                'reconciliation': ['Rekonsiliasi Keuangan', 'Matriks pencocokan mutasi bank vs pencatatan internal'],
-                'portfolio': ['Portofolio & Alokasi Aset', 'Pemantauan real-time performa instrumen investasi'],
-                'goals': ['Financial Goals & Budgeting', 'Target tabungan dan batas pengeluaran bulanan']
-            };
-            document.getElementById('page-title').innerText = titles[tabName][0];
-            document.getElementById('page-subtitle').innerText = titles[tabName][1];
+            let netCashFlow = totalIncome - totalExpense;
+            let netWorth = totalAssetVal - totalLiabilitas;
+
+            document.getElementById('metricNetWorth').innerText = formatIDR(netWorth);
+            document.getElementById('metricTotalAsset').innerText = formatIDR(totalAssetVal);
+            document.getElementById('metricLiabilitas').innerText = formatIDR(totalLiabilitas);
+            document.getElementById('metricCashFlow').innerText = formatIDR(netCashFlow);
         }
 
-        // Render Reconciliation Table
-        function renderReconciliationTable(filter = 'all') {
-            const tbody = document.getElementById('recon-table-body');
-            tbody.innerHTML = '';
+        // Render Grafik Chart.js
+        function renderCharts() {
+            // Cash Flow Bar Chart
+            const ctxCash = document.getElementById('cashFlowChart').getContext('2d');
+            if (cashFlowChartInstance) cashFlowChartInstance.destroy();
 
-            const filteredData = state.reconciliations.filter(item => {
-                if (filter === 'matched') return item.status === 'matched';
-                if (filter === 'unmatched') return item.status === 'unmatched';
-                return true;
-            });
-
-            filteredData.forEach(item => {
-                const isMatched = item.status === 'matched';
-                const statusBadge = isMatched
-                    ? `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1 w-max"><i data-lucide="check-circle" class="w-3 h-3"></i> Matched</span>`
-                    : `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1 w-max"><i data-lucide="alert-circle" class="w-3 h-3"></i> Selisih</span>`;
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/50 transition-colors';
-                tr.innerHTML = `
-                    <td class="p-3.5 whitespace-nowrap text-slate-400">${item.date}</td>
-                    <td class="p-3.5 font-medium text-slate-200">${item.account}</td>
-                    <td class="p-3.5">
-                        <div class="font-semibold text-slate-200">${item.internalDesc}</div>
-                        <div class="text-[11px] text-slate-400">${formatIDR(item.internalVal)}</div>
-                    </td>
-                    <td class="p-3.5">
-                        <div class="font-semibold text-slate-200">${item.bankDesc}</div>
-                        <div class="text-[11px] text-slate-400">${item.bankVal > 0 ? formatIDR(item.bankVal) : '-'}</div>
-                    </td>
-                    <td class="p-3.5 font-semibold ${item.diff === 0 ? 'text-slate-400' : 'text-rose-400'}">
-                        ${item.diff === 0 ? 'Rp 0' : formatIDR(item.diff)}
-                    </td>
-                    <td class="p-3.5">${statusBadge}</td>
-                    <td class="p-3.5 text-center">
-                        ${isMatched 
-                            ? `<span class="text-slate-500 text-[11px]">Tidak ada aksi</span>`
-                            : `<button onclick="resolveDiscrepancy(${item.id})" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-medium rounded transition-all">Selesaikan Selisih</button>`
-                        }
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            lucide.createIcons();
-            updateUnmatchedBadge();
-        }
-
-        // Filter Reconciliation Tabs
-        function filterRecon(filterType) {
-            document.querySelectorAll('.recon-filter-btn').forEach(btn => {
-                btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-500');
-                btn.classList.add('bg-slate-800', 'text-slate-400', 'border-slate-700');
-            });
-            const activeBtn = document.getElementById(`btn-filter-${filterType}`);
-            activeBtn.classList.add('bg-sky-600', 'text-white', 'border-sky-500');
-            activeBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700');
-
-            renderReconciliationTable(filterType);
-        }
-
-        // Action: Resolve Single Discrepancy
-        function resolveDiscrepancy(id) {
-            const item = state.reconciliations.find(r => r.id === id);
-            if (item) {
-                item.status = 'matched';
-                item.bankVal = item.internalVal;
-                item.bankDesc = item.internalDesc + " (Auto-Matched)";
-                item.diff = 0;
-                renderReconciliationTable();
-                showToast(`Transaksi "${item.internalDesc}" telah direkonsiliasi!`);
-            }
-        }
-
-        // Action: Reconcile All Matched
-        function reconcileAllMatched() {
-            state.reconciliations.forEach(r => {
-                if (r.status === 'unmatched') {
-                    r.status = 'matched';
-                    r.bankVal = r.internalVal;
-                    r.diff = 0;
-                }
-            });
-            renderReconciliationTable();
-            showToast("Semua transaksi selisih berhasil disinkronisasi!");
-        }
-
-        // Update Unmatched Badge Count
-        function updateUnmatchedBadge() {
-            const count = state.reconciliations.filter(r => r.status === 'unmatched').length;
-            const badge = document.getElementById('unmatched-badge');
-            badge.innerText = `${count} Unmatched`;
-            if (count === 0) {
-                badge.className = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] px-2 py-0.5 rounded-full font-bold";
-            }
-        }
-
-        // Render Portfolio Table
-        function renderPortfolioTable() {
-            const tbody = document.getElementById('portfolio-table-body');
-            tbody.innerHTML = '';
-
-            state.portfolio.forEach(item => {
-                const totalCost = item.qty * item.avgPrice;
-                const totalValue = item.qty * item.currentPrice;
-                const pnl = totalValue - totalCost;
-                const pnlPercent = (pnl / totalCost) * 100;
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-800/50 transition-colors';
-                tr.innerHTML = `
-                    <td class="p-3.5 font-semibold text-white">${item.name}</td>
-                    <td class="p-3.5 text-slate-400">${item.category}</td>
-                    <td class="p-3.5 text-slate-300">${formatIDR(item.avgPrice)}</td>
-                    <td class="p-3.5 text-slate-200 font-medium">${formatIDR(item.currentPrice)}</td>
-                    <td class="p-3.5 text-white font-bold">${formatIDR(totalValue)}</td>
-                    <td class="p-3.5 font-semibold ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
-                        ${pnl >= 0 ? '+' : ''}${formatIDR(pnl)} (${pnlPercent.toFixed(1)}%)
-                    </td>
-                    <td class="p-3.5 text-center">
-                        <button onclick="openModal('modal-update-asset')" class="text-sky-400 hover:text-sky-300 font-medium text-xs">Update</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Render Financial Goals & Budgeting
-        function renderGoalsAndBudgets() {
-            // Render Goals
-            const goalsContainer = document.getElementById('goals-container');
-            goalsContainer.innerHTML = '';
-
-            state.goals.forEach(g => {
-                const pct = Math.min(Math.round((g.current / g.target) * 100), 100);
-                goalsContainer.innerHTML += `
-                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="p-2 bg-${g.color}-500/10 text-${g.color}-400 rounded-lg">
-                                    <i data-lucide="${g.icon}" class="w-4 h-4"></i>
-                                </div>
-                                <h4 class="font-semibold text-white text-sm">${g.title}</h4>
-                            </div>
-                            <span class="text-xs font-bold text-sky-400">${pct}%</span>
-                        </div>
-                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                            <div class="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full" style="width: ${pct}%"></div>
-                        </div>
-                        <div class="flex justify-between text-xs text-slate-400">
-                            <span>Terkumpul: <strong class="text-slate-200">${formatIDR(g.current)}</strong></span>
-                            <span>Target: ${formatIDR(g.target)}</span>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Render Budgets
-            const budgetContainer = document.getElementById('budget-container');
-            budgetContainer.innerHTML = '';
-
-            state.budgets.forEach(b => {
-                const pct = Math.round((b.spent / b.limit) * 100);
-                const isOver = b.spent > b.limit;
-                budgetContainer.innerHTML += `
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs">
-                            <span class="font-medium text-slate-300">${b.category}</span>
-                            <span class="${isOver ? 'text-rose-400 font-bold' : 'text-slate-400'}">${formatIDR(b.spent)} / ${formatIDR(b.limit)} (${pct}%)</span>
-                        </div>
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div class="${isOver ? 'bg-rose-500' : 'bg-sky-500'} h-full rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            lucide.createIcons();
-        }
-
-        // Initialize Chart.js Data & Render
-        function initCharts() {
-            // Cash Flow Trend Chart (Bar + Line)
-            const ctxCashflow = document.getElementById('chart-cashflow-trend').getContext('2d');
-            new Chart(ctxCashflow, {
+            cashFlowChartInstance = new Chart(ctxCash, {
                 type: 'bar',
                 data: {
-                    labels: ['Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'],
                     datasets: [
-                        {
-                            label: 'Pemasukan (Rp)',
-                            data: [22000000, 24000000, 23500000, 25000000, 28000000, 29500000],
-                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                            borderRadius: 4
-                        },
-                        {
-                            label: 'Pengeluaran (Rp)',
-                            data: [14000000, 16500000, 13000000, 15000000, 14200000, 15250000],
-                            backgroundColor: 'rgba(244, 63, 94, 0.7)',
-                            borderRadius: 4
-                        }
+                        { label: 'Pemasukan', data: [11000000, 11500000, 12000000, 12000000, 12500000, 12500000], backgroundColor: '#10b981', borderRadius: 4 },
+                        { label: 'Pengeluaran', data: [7200000, 6800000, 7500000, 8100000, 7000000, 7300000], backgroundColor: '#ef4444', borderRadius: 4 }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } }
-                    },
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
                     scales: {
-                        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(51, 65, 85, 0.4)' } }
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
                     }
                 }
             });
 
-            // Portfolio Donut Chart
-            const ctxAllocation = document.getElementById('chart-asset-allocation').getContext('2d');
-            new Chart(ctxAllocation, {
+            // Donut Chart Aset
+            const ctxDonut = document.getElementById('assetDonutChart').getContext('2d');
+            if (assetDonutChartInstance) assetDonutChartInstance.destroy();
+
+            let assetCategories = {};
+            portfolio.forEach(item => {
+                let val = item.qty * item.currentPrice;
+                assetCategories[item.category] = (assetCategories[item.category] || 0) + val;
+            });
+
+            assetDonutChartInstance = new Chart(ctxDonut, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Saham', 'Kas/Bank', 'Emas', 'Reksadana', 'Kripto'],
+                    labels: Object.keys(assetCategories),
                     datasets: [{
-                        data: [350000000, 220000000, 150000000, 120000000, 55000000],
-                        backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#6366f1', '#ec4899'],
+                        data: Object.values(assetCategories),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    cutout: '70%'
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
                 }
             });
         }
 
-        // Modal Handlers
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+        // Tab Switcher
+        function switchTab(tabName) {
+            ['reconciliation', 'portfolio', 'budget'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tabBtn-${t}`).className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tabBtn-${tabName}`).className = "pb-3 text-sm font-medium border-b-2 border-emerald-400 text-emerald-400 transition";
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+        // Render Tabel Rekonsiliasi (Bisa kosong sampai 0 baris)
+        function renderReconciliationTable() {
+            const tbody = document.getElementById('reconTableBody');
+            tbody.innerHTML = '';
+
+            const searchKey = document.getElementById('searchRecon').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            let filtered = transactions.filter(t => {
+                let matchSearch = t.desc.toLowerCase().includes(searchKey) || t.category.toLowerCase().includes(searchKey);
+                let matchStatus = statusFilter === 'ALL' ? true : (statusFilter === 'Pending' ? t.status !== 'Matched' : t.status === 'Matched');
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">Tidak ada data transaksi ditemukan (0 transaksi).</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                let statusBadge = t.status === 'Matched' 
+                    ? `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">Matched</span>`
+                    : `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">Pending / Selisih</span>`;
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-300">${t.date}</td>
+                    <td class="p-3 font-medium text-white">${t.desc}</td>
+                    <td class="p-3 text-slate-400">${t.category}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${formatIDR(t.internal)}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${formatIDR(t.bank)}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="reconcileItem(${t.id})" class="text-emerald-400 hover:text-emerald-300 p-1" title="Tandai Matched"><i class="fa-solid fa-check"></i></button>
+                        <button onclick="deleteTransaction(${t.id})" class="text-rose-400 hover:text-rose-300 p-1" title="Hapus Transaksi"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        // Handle Add Transaction Form Submit
-        function handleAddTransaction(e) {
-            e.preventDefault();
-            const date = document.getElementById('input-tx-date').value;
-            const account = document.getElementById('input-tx-account').value;
-            const desc = document.getElementById('input-tx-desc').value;
-            const amount = parseFloat(document.getElementById('input-tx-amount').value);
-
-            const newEntry = {
-                id: Date.now(),
-                date: date,
-                account: account,
-                internalDesc: desc,
-                internalVal: amount,
-                bankDesc: '-',
-                bankVal: 0,
-                diff: amount,
-                status: 'unmatched'
-            };
-
-            state.reconciliations.unshift(newEntry);
-            renderReconciliationTable();
-            closeModal('modal-add-transaction');
-            showToast('Transaksi baru berhasil ditambahkan!');
-        }
-
-        // Handle Update Asset Price Form
-        function handleUpdateAssetPrice(e) {
-            e.preventDefault();
-            const assetId = document.getElementById('update-asset-id').value;
-            const newPrice = parseFloat(document.getElementById('update-asset-price').value);
-
-            const item = state.portfolio.find(p => p.id === assetId);
+        // Aksi Rekonsiliasi & Hapus Transaksi
+        function reconcileItem(id) {
+            let item = transactions.find(t => t.id === id);
             if (item) {
-                item.currentPrice = newPrice;
-                renderPortfolioTable();
-                closeModal('modal-update-asset');
-                showToast(`Harga ${item.name} berhasil diperbarui!`);
+                item.status = 'Matched';
+                item.bank = item.internal;
+                saveData();
+                renderAll();
             }
         }
 
-        // Simulate CSV Import
-        function simulateImport() {
-            closeModal('modal-import');
-            showToast("Memproses file mutasi bank...");
-            setTimeout(() => {
-                showToast("Import selesai: 12 Transaksi baru dicocokkan!");
-            }, 1200);
+        function deleteTransaction(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus transaksi ini?")) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveData();
+                renderAll();
+            }
         }
 
-        // Toast Notification System
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-message').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
+        // Render Portofolio (Bisa kosong sampai 0 baris)
+        function renderPortfolioTable() {
+            const tbody = document.getElementById('portfolioTableBody');
+            tbody.innerHTML = '';
 
-        // Search Reconciliation Table
-        function searchReconTable() {
-            const query = document.getElementById('recon-search').value.toLowerCase();
-            const rows = document.querySelectorAll('#recon-table-body tr');
+            if (portfolio.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-500 italic">Belum ada instrumen aset tersimpan (0 aset).</td></tr>`;
+                return;
+            }
 
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
+            portfolio.forEach(item => {
+                let totalVal = item.qty * item.currentPrice;
+                let modalVal = item.qty * item.buyPrice;
+                let pl = totalVal - modalVal;
+                let plPercent = modalVal > 0 ? (pl / modalVal) * 100 : 0;
+                let plColor = pl >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                let plSign = pl >= 0 ? '+' : '';
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-white">${item.name}</td>
+                    <td class="p-3 text-slate-400">${item.category}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${item.qty.toLocaleString()}</td>
+                    <td class="p-3 text-right font-mono text-slate-300">${formatIDR(item.buyPrice)}</td>
+                    <td class="p-3 text-right font-mono text-slate-200">${formatIDR(item.currentPrice)}</td>
+                    <td class="p-3 text-right font-mono font-semibold text-white">${formatIDR(totalVal)}</td>
+                    <td class="p-3 text-right font-mono ${plColor}">${plSign}${formatIDR(pl)} (${plSign}${plPercent.toFixed(2)}%)</td>
+                    <td class="p-3 text-center space-x-1">
+                        <button onclick="updateAssetPrice(${item.id})" class="text-blue-400 hover:text-blue-300 p-1" title="Update Harga"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteAsset(${item.id})" class="text-rose-400 hover:text-rose-300 p-1" title="Hapus Aset"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
+        }
+
+        function updateAssetPrice(id) {
+            let item = portfolio.find(p => p.id === id);
+            if (item) {
+                let newP = prompt(`Masukkan harga pasar terbaru untuk ${item.name}:`, item.currentPrice);
+                if (newP !== null && !isNaN(newP)) {
+                    item.currentPrice = parseFloat(newP);
+                    saveData();
+                    renderAll();
+                }
+            }
+        }
+
+        function deleteAsset(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus aset ini?")) {
+                portfolio = portfolio.filter(p => p.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        // Render Budget & Goals
+        function renderBudgetAndGoals() {
+            const bCont = document.getElementById('budgetContainer');
+            bCont.innerHTML = '';
+            if(budgets.length === 0) {
+                bCont.innerHTML = `<p class="text-xs text-slate-500 italic">Belum ada budget diatur.</p>`;
+            } else {
+                budgets.forEach((b, idx) => {
+                    let pct = Math.min(Math.round((b.spent / b.limit) * 100), 100);
+                    let barColor = pct > 85 ? 'bg-rose-500' : 'bg-emerald-500';
+                    bCont.innerHTML += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span class="font-medium text-slate-200">${b.category}</span>
+                                <span class="text-slate-400">${formatIDR(b.spent)} / ${formatIDR(b.limit)} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            const gCont = document.getElementById('goalsContainer');
+            gCont.innerHTML = '';
+            if(goals.length === 0) {
+                gCont.innerHTML = `<p class="text-xs text-slate-500 italic">Belum ada financial goals diatur.</p>`;
+            } else {
+                goals.forEach((g) => {
+                    let pct = Math.min(Math.round((g.current / g.target) * 100), 100);
+                    gCont.innerHTML += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span class="font-medium text-slate-200">${g.name}</span>
+                                <span class="text-slate-400">${formatIDR(g.current)} / ${formatIDR(g.target)} (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                                <div class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // Modal Handlers
+        function openAddTransactionModal() {
+            document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('addTransactionModal').classList.remove('hidden');
+        }
+        function closeAddTransactionModal() {
+            document.getElementById('addTransactionModal').classList.add('hidden');
+        }
+        function saveNewTransaction() {
+            let date = document.getElementById('inputDate').value;
+            let desc = document.getElementById('inputDesc').value;
+            let category = document.getElementById('inputCategory').value;
+            let amount = parseFloat(document.getElementById('inputAmount').value) || 0;
+
+            if(!desc || !amount) {
+                alert("Harap isi keterangan dan nominal transaksi dengan benar!");
+                return;
+            }
+
+            let newId = transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1;
+            transactions.unshift({
+                id: newId,
+                date: date,
+                desc: desc,
+                category: category,
+                internal: amount,
+                bank: amount,
+                status: 'Matched'
+            });
+
+            saveData();
+            renderAll();
+            closeAddTransactionModal();
+        }
+
+        function openAddAssetModal() {
+            document.getElementById('addAssetModal').classList.remove('hidden');
+        }
+        function closeAddAssetModal() {
+            document.getElementById('addAssetModal').classList.add('hidden');
+        }
+        function saveNewAsset() {
+            let name = document.getElementById('assetName').value;
+            let category = document.getElementById('assetCategory').value;
+            let qty = parseFloat(document.getElementById('assetQty').value) || 0;
+            let buyPrice = parseFloat(document.getElementById('assetBuyPrice').value) || 0;
+
+            if(!name || qty <= 0 || buyPrice <= 0) {
+                alert("Harap isi seluruh data aset dengan valid!");
+                return;
+            }
+
+            let newId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
+            portfolio.push({
+                id: newId,
+                name: name,
+                category: category,
+                qty: qty,
+                buyPrice: buyPrice,
+                currentPrice: buyPrice
+            });
+
+            saveData();
+            renderAll();
+            closeAddAssetModal();
         }
     </script>
 </body>
